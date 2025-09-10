@@ -1,39 +1,60 @@
 global:
-  workspace: ./data
+  # 用于存储数据和结果的工作目录
+  workspace: "./data"
+  # 任务失败后可重新排队的最大次数
   max_retries_requeued: 3
+  # GitHub凭据配置
   github_credentials:
+    # GitHub会话令牌（推荐使用，以获得更高的速率限制）
+    # 当 sessions/tokens 为空 [] 或仅包含以 your_ 开头的占位值时，将自动从环境变量接管：
+    #   - GITHUB_SESSIONS="sess_a,sess_b"
+    #   - GITHUB_TOKENS="ghp_xxx,ghp_yyy"
     sessions: []
+    # GitHub API令牌（可选，速率限制较低）
     tokens: []
-    strategy: round_robin
+    # 负载均衡策略：round_robin（轮询）或random（随机）
+    strategy: "round_robin"
+  # Web请求的用户代理列表（自动轮换）
   user_agents:
-  - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
-    Chrome/138.0.0.0 Safari/537.36
-  - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like
-    Gecko) Chrome/138.0.0.0 Safari/537.36
-  - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0
-    Safari/537.36
+    - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+    - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+
+# 管道阶段配置
 pipeline:
+  # 每个阶段的线程数
   threads:
-    search: 1
-    gather: 8
-    check: 4
-    inspect: 2
+    search: 1 # 搜索阶段线程（由于速率限制，保持较低）
+    gather: 8 # 采集阶段线程
+    check: 4 # 验证阶段线程
+    inspect: 2 # API能力检查线程
+  # 每个阶段的队列大小
   queue_sizes:
-    search: 100000
-    gather: 200000
-    check: 500000
-    inspect: 1000000
+    search: 100000 # 搜索结果队列
+    gather: 200000 # 采集任务队列
+    check: 500000 # 验证任务队列
+    inspect: 1000000 # API能力检查任务队列
+
+# 系统监控配置
 monitoring:
+  # 监控更新间隔（秒）
   update_interval: 2.0
+  # 错误率阈值（0.0到1.0）
   error_threshold: 0.1
+  # 队列大小警告阈值
   queue_threshold: 1000
+  # 内存使用阈值（字节）（1GB）
   memory_threshold: 1073741824
+  # 响应时间阈值（秒）
   response_threshold: 5.0
+
+# 不同上下文的显示配置
 display:
   contexts:
+    # 系统状态显示设置
     system:
       standard:
-        title: System Status
+        title: "系统状态"
         show_workers: true
         show_alerts: true
         show_performance: false
@@ -41,7 +62,7 @@ display:
         width: 80
         max_alerts_per_level: 3
       compact:
-        title: System Status
+        title: "系统状态"
         show_workers: false
         show_alerts: false
         show_performance: false
@@ -49,16 +70,17 @@ display:
         width: 80
         max_alerts_per_level: 3
       detailed:
-        title: Detailed System Status
+        title: "详细系统状态"
         show_workers: true
         show_alerts: true
         show_performance: true
         show_newline_prefix: true
         width: 80
         max_alerts_per_level: 3
+    # 监控显示设置
     monitoring:
       standard:
-        title: Pipeline Monitoring
+        title: "管道监控"
         show_workers: true
         show_alerts: true
         show_performance: true
@@ -66,16 +88,17 @@ display:
         width: 80
         max_alerts_per_level: 3
       detailed:
-        title: Detailed Pipeline Monitoring
+        title: "详细管道监控"
         show_workers: true
         show_alerts: true
         show_performance: true
         show_newline_prefix: true
         width: 80
         max_alerts_per_level: 3
+    # 任务管理器显示设置
     task:
       standard:
-        title: Task Manager Status
+        title: "任务管理器状态"
         show_workers: true
         show_alerts: false
         show_performance: false
@@ -83,16 +106,17 @@ display:
         width: 80
         max_alerts_per_level: 3
       compact:
-        title: Task Manager Status
+        title: "任务管理器状态"
         show_workers: false
         show_alerts: false
         show_performance: false
         show_newline_prefix: false
         width: 80
         max_alerts_per_level: 3
+    # 应用程序状态显示设置
     application:
       standard:
-        title: Application Status
+        title: "应用程序状态"
         show_workers: false
         show_alerts: true
         show_performance: false
@@ -100,77 +124,172 @@ display:
         width: 80
         max_alerts_per_level: 3
       detailed:
-        title: Detailed Application Status
+        title: "详细应用程序状态"
         show_workers: true
         show_alerts: true
         show_performance: true
         show_newline_prefix: false
         width: 80
         max_alerts_per_level: 3
+    # 主状态显示设置
     main:
       standard:
-        title: Pipeline Status
+        title: "管道状态"
         show_workers: true
         show_alerts: false
         show_performance: false
         show_newline_prefix: false
         width: 80
         max_alerts_per_level: 3
+
+# 数据持久化配置
 persistence:
+  # 保存结果的批处理大小
   batch_size: 50
+  # 结果保存间隔（秒）
   save_interval: 30
+  # 队列状态保存间隔（秒）
   queue_interval: 60
+  # 定期快照间隔（秒）
   snapshot_interval: 300
+  # 启动时自动恢复状态
   auto_restore: true
+  # 关闭超时（秒）
   shutdown_timeout: 30
-  simple: false
+  # 输出格式，支持txt或ndjson
+  format: txt
+
+# 动态工作线程管理器配置
 worker:
+  # 启用/禁用动态工作线程管理
   enabled: false
+  # 最小工作线程数
   min_workers: 1
+  # 最大工作线程数
   max_workers: 10
+  # 自动扩展的目标队列大小
   target_queue_size: 100
+  # 线程池调整间隔（秒）
   adjustment_interval: 5.0
+  # 扩容的队列大小阈值（0.0-1.0）
   scale_up_threshold: 0.8
+  # 缩容的队列大小阈值（0.0-1.0）
   scale_down_threshold: 0.2
+  # 启用工作线程调整建议日志
   log_recommendations: true
+
+# 全局速率限制配置
 ratelimits:
+  # GitHub API速率限制（更保守）
   github_api:
-    base_rate: 1.0
-    burst_limit: 5
-    adaptive: true
-  github_web:
-    base_rate: 2.0
+    # 基础速率（每秒请求数）
+    base_rate: 0.15
+    # 最大突发大小
     burst_limit: 3
-    adaptive: false
-tasks:
-- name: openai
-  enabled: true
-  provider_type: openai_like
-  use_api: false
-  stages:
-    search: true
-    gather: true
-    check: true
-    inspect: true
-  extras: {}
-  api:
-    base_url: https://api.openai.com
-    completion_path: /v1/chat/completions
-    model_path: /v1/models
-    default_model: gpt-4o-mini
-    auth_key: Authorization
-    extra_headers: {}
-    api_version: ''
-    timeout: 30
-    retries: 3
-  patterns:
-    key_pattern: sk(?:-proj)?-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}
-    address_pattern: ''
-    endpoint_pattern: ''
-    model_pattern: ''
-  conditions:
-  - query: '"T3BlbkFJ"'
-  rate_limit:
-    base_rate: 2.0
-    burst_limit: 10
+    # 启用自适应速率限制
     adaptive: true
+  # GitHub网页抓取速率限制（更保守）
+  github_web:
+    # 基础速率（每秒请求数）
+    base_rate: 0.5
+    # 最大突发大小
+    burst_limit: 2
+    # 启用自适应速率限制
+    adaptive: true
+
+# 提供商任务配置（OpenAI 与 Gemini）
+tasks:
+  - name: "openai"                    # 提供商名称(任务的唯一标识符)
+    enabled: true                     # 是否启用
+    provider_type: "openai_like"      # 决定验证方法（openai_like、anthropic、gemini 等）
+    use_api: false                    # 使用GitHub API进行搜索
+    # 流水线阶段设置(启用/禁用特定的处理阶段)
+    stages:
+      search: true         # 启用搜索阶段
+      gather: true         # 启用采集阶段
+      check: true          # 启用验证阶段
+      inspect: true        # 启用API能力检查
+    # 用于密钥验证的API端点配置
+    api:
+      base_url: https://api.openai.com
+      completion_path: /v1/chat/completions
+      model_path: /v1/models          # 验证更快更轻量
+      default_model: gpt-4o-mini
+      auth_key: Authorization         # 以 Bearer <key> 形式发送
+      extra_headers:
+        User-Agent: "KeyValidator/1.0 (+https://example.com)"
+        # OpenAI-Organization: "org_xxx"  # 如需组织级校验可启用
+      api_version: ""                 # OpenAI 公共API留空；Azure 另配
+      timeout: 20                     # 验证优先 /v1/models
+      retries: 5                      # 提高重试应对瞬时 429/超时
+    # 模式匹配配置
+    patterns:
+      # 覆盖常见 OpenAI 密钥形态，避免依赖特定片段导致漏报
+      key_pattern: "sk-[A-Za-z0-9_-]{32,64}"
+      address_pattern: ""
+      endpoint_pattern: ""
+      model_pattern: ""
+    # 搜索条件(用于查找潜在密钥的搜索查询)
+    conditions:
+      - query: 'OPENAI_API_KEY OR "Authorization: Bearer"'
+      - query: 'path:.env OR filename:.env'
+      - query: 'content:sk- AND (openai OR gpt OR "chat/completions")'
+    # 速率限制配置（更稳健的自适应参数）
+    rate_limit:
+      base_rate: 0.5           # 稳妥起步，配合重试与自适应
+      burst_limit: 5
+      adaptive: true
+      backoff_factor: 0.6      # 稍增强退避
+      recovery_factor: 1.2     # 恢复略快
+      max_rate_multiplier: 2.0
+      min_rate_multiplier: 0.1
+    # 结果目录(自定义输出目录)
+    extras:
+      directory: "openai"
+
+  # 提供商名称(任务的唯一标识符)
+  - name: "gemini"
+    # 是否启用
+    enabled: true
+    # 决定验证方法（openai_like、anthropic、gemini 等）
+    provider_type: "gemini"
+    # 使用GitHub API进行搜索
+    use_api: false
+    # 流水线阶段设置(启用/禁用特定的处理阶段)
+    stages:
+      search: true    # 启用搜索阶段
+      gather: true    # 启用采集阶段
+      check: true     # 启用验证阶段
+      inspect: true   # 启用API能力检查
+    # 用于密钥验证的API端点配置（新增，便于快速校验）
+    api:
+      base_url: https://generativelanguage.googleapis.com
+      model_path: /v1/models
+      completion_path: "/v1/models/{model}:generateContent"
+      default_model: gemini-1.5-flash
+      auth_key: x-goog-api-key
+      extra_headers:
+        User-Agent: "KeyValidator/1.0 (+https://example.com)"
+      api_version: ""
+      timeout: 20
+      retries: 5
+    # 说明：本任务在验证阶段会使用搜索到的候选 key 动态调用 API，
+    # 因此无需在运行环境中提供固定的 GEMINI_API_KEY 环境变量。
+    # 模式匹配配置
+    patterns:
+      # 更通用的 Google/Gemini API Key 形态
+      key_pattern: 'AIza[0-9A-Za-z_-]{35}'
+    # 搜索条件(用于查找潜在密钥的搜索查询)
+    conditions:
+      - query: 'GEMINI_API_KEY OR GOOGLE_API_KEY'
+      - query: 'filename:.env OR path:.env'
+      - query: 'content:AIza AND (gemini OR generativelanguage.googleapis.com)'
+    # 速率限制配置（与 openai 一致的自适应参数集）
+    rate_limit:
+      base_rate: 0.5
+      burst_limit: 5
+      adaptive: true
+      backoff_factor: 0.6
+      recovery_factor: 1.2
+      max_rate_multiplier: 2.0
+      min_rate_multiplier: 0.1
