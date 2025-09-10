@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+
+"""
+Constants Package - Reorganized by Functional Modules
+
+This package provides constants organized by the specific modules they serve,
+improving maintainability and reducing coupling between different system components.
+
+Key Features:
+- Module-focused organization
+- Clear separation of concerns
+- Elimination of duplicate constants
+- Easy import and usage
+"""
+
+# State monitoring configuration
+from .monitoring import (
+    COLLECTOR_CACHE_TTL,
+    MONITORING_THRESHOLDS,
+    AlertConfig,
+    CacheConfig,
+    DisplayConfig,
+)
+
+# Runtime pipeline and queue management
+from .runtime import (
+    DEFAULT_CHECK_QUEUE_SIZE,
+    DEFAULT_GATHER_QUEUE_SIZE,
+    DEFAULT_INSPECT_QUEUE_SIZE,
+    DEFAULT_SEARCH_QUEUE_SIZE,
+    DEFAULT_THREAD_COUNTS,
+    QUEUE_STATE_MAX_AGE_HOURS,
+    QUEUE_STATE_PROVIDER_MULTI,
+    RESULT_MAPPINGS,
+    ResultMapping,
+)
+
+# Search engine configuration
+from .search import (
+    ALLOWED_OPERATORS,
+    API_LIMIT,
+    API_MAX_PAGES,
+    API_RESULTS_PER_PAGE,
+    POPULAR_LANGUAGES,
+    SIZE_RANGES,
+    WEB_LIMIT,
+    WEB_MAX_PAGES,
+    WEB_RESULTS_PER_PAGE,
+)
+
+# System configuration and limits
+# Network and API configuration
+from .system import (
+    ALERT_COOLDOWN_SECONDS,
+    APPLICATION_BANNER,
+    CTX,
+    DEFAULT_ADJUSTMENT_INTERVAL,
+    DEFAULT_AUTHORIZATION_HEADER,
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_COMPLETION_PATH,
+    DEFAULT_CONFIG_FILE,
+    DEFAULT_ERROR_RATE_THRESHOLD_APP,
+    DEFAULT_HEADERS,
+    DEFAULT_MAX_RETRIES_REQUEUED,
+    DEFAULT_MAX_WORKERS,
+    DEFAULT_MEMORY_THRESHOLD,
+    DEFAULT_MIN_WORKERS,
+    DEFAULT_MODEL_PATH,
+    DEFAULT_QUESTION,
+    DEFAULT_QUEUE_INTERVAL,
+    DEFAULT_QUEUE_SIZE_THRESHOLD_APP,
+    DEFAULT_RETRIES,
+    DEFAULT_SAVE_INTERVAL,
+    DEFAULT_SCALE_DOWN_THRESHOLD,
+    DEFAULT_SCALE_UP_THRESHOLD,
+    DEFAULT_SHUTDOWN_TIMEOUT,
+    DEFAULT_STATS_INTERVAL,
+    DEFAULT_TARGET_QUEUE_SIZE,
+    DEFAULT_TIMEOUT,
+    DEFAULT_WORKSPACE_DIR,
+    LB_RECENT_HISTORY_SIZE,
+    LOG_LEVEL_DEBUG,
+    LOG_LEVEL_ERROR,
+    LOG_LEVEL_INFO,
+    LOG_LEVEL_WARNING,
+    NO_RETRY_ERROR_CODES,
+    PROGRESS_UPDATE_INTERVAL,
+    PROVIDER_SERVICE_PREFIX,
+    SERVICE_TYPE_GITHUB_API,
+    SERVICE_TYPE_GITHUB_WEB,
+)
+
+__all__ = [
+    # System configuration
+    "DEFAULT_CONFIG_FILE",
+    "DEFAULT_WORKSPACE_DIR",
+    "APPLICATION_BANNER",
+    "LOG_LEVEL_DEBUG",
+    "LOG_LEVEL_INFO",
+    "LOG_LEVEL_WARNING",
+    "LOG_LEVEL_ERROR",
+    "DEFAULT_BATCH_SIZE",
+    "DEFAULT_SAVE_INTERVAL",
+    "DEFAULT_QUEUE_INTERVAL",
+    "DEFAULT_RETRIES",
+    "DEFAULT_TIMEOUT",
+    "DEFAULT_SHUTDOWN_TIMEOUT",
+    "DEFAULT_STATS_INTERVAL",
+    "DEFAULT_MAX_RETRIES_REQUEUED",
+    "DEFAULT_MEMORY_THRESHOLD",
+    "DEFAULT_ERROR_RATE_THRESHOLD_APP",
+    "DEFAULT_QUEUE_SIZE_THRESHOLD_APP",
+    "ALERT_COOLDOWN_SECONDS",
+    "DEFAULT_MIN_WORKERS",
+    "DEFAULT_MAX_WORKERS",
+    "DEFAULT_TARGET_QUEUE_SIZE",
+    "DEFAULT_ADJUSTMENT_INTERVAL",
+    "DEFAULT_SCALE_UP_THRESHOLD",
+    "DEFAULT_SCALE_DOWN_THRESHOLD",
+    "LB_RECENT_HISTORY_SIZE",
+    "PROGRESS_UPDATE_INTERVAL",
+    # Network configuration
+    "DEFAULT_COMPLETION_PATH",
+    "DEFAULT_MODEL_PATH",
+    "DEFAULT_AUTHORIZATION_HEADER",
+    "DEFAULT_HEADERS",
+    "DEFAULT_QUESTION",
+    "CTX",
+    "NO_RETRY_ERROR_CODES",
+    # Runtime pipeline and queues
+    "DEFAULT_THREAD_COUNTS",
+    "DEFAULT_SEARCH_QUEUE_SIZE",
+    "DEFAULT_GATHER_QUEUE_SIZE",
+    "DEFAULT_CHECK_QUEUE_SIZE",
+    "DEFAULT_INSPECT_QUEUE_SIZE",
+    "QUEUE_STATE_PROVIDER_MULTI",
+    "QUEUE_STATE_MAX_AGE_HOURS",
+    "ResultMapping",
+    "RESULT_MAPPINGS",
+    # Search configuration
+    "POPULAR_LANGUAGES",
+    "SIZE_RANGES",
+    "API_MAX_PAGES",
+    "WEB_MAX_PAGES",
+    "API_RESULTS_PER_PAGE",
+    "WEB_RESULTS_PER_PAGE",
+    "API_LIMIT",
+    "WEB_LIMIT",
+    "ALLOWED_OPERATORS",
+    # Monitoring configuration
+    "COLLECTOR_CACHE_TTL",
+    "MONITORING_THRESHOLDS",
+    # Type constants and enums
+    "AlertConfig",
+    "CacheConfig",
+    "DisplayConfig",
+    # Service types
+    "SERVICE_TYPE_GITHUB_API",
+    "SERVICE_TYPE_GITHUB_WEB",
+    "PROVIDER_SERVICE_PREFIX",
+]
