@@ -48,7 +48,14 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set build metadata
+        run: |
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "REF_NAME=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -58,5 +65,9 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            VCS_REF=${{ github.sha }}
+            BUILD_VERSION=${{ env.REF_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

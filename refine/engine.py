@@ -269,11 +269,15 @@ class RefineEngine:
             return []
 
         queries = set()
-        if not re.match(r" language:[a-zA-Z0-9#]+ ", base, flags=re.I):
+        # Detect existing language/size refinements anywhere in the query (not just at start)
+        has_language = re.search(r"(?:^|\s)language:[A-Za-z0-9#+-]+(?:\s|$)", base, flags=re.I) is not None
+        has_size = re.search(r"(?:^|\s)size:[A-Za-z0-9#=<>.]+(?:\s|$)", base, flags=re.I) is not None
+
+        if not has_language:
             # Language-based refinement
             for lang in POPULAR_LANGUAGES:
                 queries.add(f"{base} language:{lang}")
-        elif not re.match(r" size:[a-zA-Z0-9#=<>.]+ ", base, flags=re.I):
+        elif not has_size:
             # Sise-based refinement
             for size in SIZE_RANGES:
                 queries.add(f"{base} size:{size}")
