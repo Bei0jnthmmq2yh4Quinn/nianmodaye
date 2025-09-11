@@ -263,7 +263,7 @@ tasks:
     api:
       base_url: https://generativelanguage.googleapis.com
       model_path: /v1/models
-      completion_path: "/v1/models/{model}:generateContent"
+      completion_path: /v1/models
       default_model: gemini-1.5-flash
       auth_key: x-goog-api-key
       extra_headers:
