@@ -278,9 +278,12 @@ class RefineEngine:
             for lang in POPULAR_LANGUAGES:
                 queries.add(f"{base} language:{lang}")
         elif not has_size:
-            # Sise-based refinement
+            # Size-based refinement (avoid double 'size:' prefix)
             for size in SIZE_RANGES:
-                queries.add(f"{base} size:{size}")
+                if isinstance(size, str) and size.lower().startswith("size:"):
+                    queries.add(f"{base} {size}")
+                else:
+                    queries.add(f"{base} size:{size}")
         else:
             logger.debug("Cannot refine with language or sie refinement due to existing refinement criteria")
             queries.add(base)
