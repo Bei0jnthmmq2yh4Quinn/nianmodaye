@@ -225,15 +225,13 @@ tasks:
     # 模式匹配配置
     patterns:
       # 覆盖常见 OpenAI 密钥形态，避免依赖特定片段导致漏报
-      key_pattern: "sk-[A-Za-z0-9_-]{32,64}"
+      key_pattern: "sk(?:-proj)?-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}"
       address_pattern: ""
       endpoint_pattern: ""
       model_pattern: ""
     # 搜索条件(用于查找潜在密钥的搜索查询)
     conditions:
-      - query: 'OPENAI_API_KEY OR "Authorization: Bearer"'
-      - query: 'path:.env OR filename:.env'
-      - query: 'content:sk- AND (openai OR gpt OR "chat/completions")'
+      - query: '"T3BlbkFJ"'
     # 速率限制配置（更稳健的自适应参数）
     rate_limit:
       base_rate: 0.5           # 稳妥起步，配合重试与自适应
