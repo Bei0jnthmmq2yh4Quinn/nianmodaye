@@ -12,10 +12,10 @@ global:
 
 pipeline:
   threads:
-    search: 2
-    gather: 12
-    check: 8
-    inspect: 2
+    search: 1
+    gather: 8
+    check: 12
+    inspect: 3
   queue_sizes:
     search: 100000
     gather: 200000
@@ -54,8 +54,8 @@ ratelimits:
     burst_limit: 5
     adaptive: true
   github_web:
-    base_rate: 1.0
-    burst_limit: 3
+    base_rate: 0.25
+    burst_limit: 2
     adaptive: true
 
 tasks:
@@ -88,9 +88,8 @@ tasks:
       - query: '"x-goog-api-key" AND (gemini OR generativelanguage.googleapis.com)'
       - query: '"generativelanguage.googleapis.com" AND "AIza"'
     rate_limit:
-      base_rate: 1.0
-      burst_limit: 10
+      base_rate: 0.6
+      burst_limit: 6
       adaptive: true
     extras:
       directory: "gemini"
-
