@@ -5,6 +5,7 @@ HTTP client utilities and GitHub-specific search functions for the search engine
 """
 
 import gzip
+import os
 import itertools
 import json
 import random
@@ -381,6 +382,14 @@ def search_github_web(query: str, session: str, page: int) -> str:
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Referer": "https://github.com",
         "User-Agent": get_user_agent(),
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Upgrade-Insecure-Requests": "1",
+        "DNT": "1",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Dest": "document",
         "Cookie": f"user_session={session}",
     }
 
@@ -457,8 +466,72 @@ def search_web_with_count(
             links.add(f"https://github.com{uri}")
 
         results = list(links)
+        # Fallback extraction: handle links without specific line anchors
+        if not results:
+            try:
+                alt_regex = r'href="(/[^\"]+/blob/[^\"#?]+(?:\?[^\"#]*)?(?:#[^\"]*)?)"'
+                alt_groups = re.findall(alt_regex, content, flags=re.I)
+                if alt_groups:
+                    results = list({f"https://github.com{u}" for u in alt_groups})
+            except Exception:
+                pass
+        # Tertiary fallback: absolute/relative href with single/double quotes
+        if not results:
+            try:
+                alt3 = r"href=['\"](?:https://github\.com)?(/[^'\"]+/blob/[^'\"#?]+(?:\?[^'\"#]*)?(?:#[^'\"]*)?)['\"]"
+                alt3_groups = re.findall(alt3, content, flags=re.I)
+                if alt3_groups:
+                    results = list({f"https://github.com{u}" for u in alt3_groups})
+            except Exception:
+                pass
+        # Quaternary fallback: data-hydro-click JSON href
+        if not results:
+            try:
+                alt4 = r"data-hydro-click='\{[^']*\"href\":\"(/[^\"#?]+/blob/[^\"#?]+(?:\?[^\"#]*)?(?:#[^\"]*)?)\""
+                alt4_groups = re.findall(alt4, content, flags=re.I)
+                if alt4_groups:
+                    results = list({f"https://github.com{u}" for u in alt4_groups})
+            except Exception:
+                pass
+        # Secondary fallback: match Link--primary anchors
+        if not results:
+            try:
+                alt2 = r'<a[^>]+class=\"[^\"]*Link--primary[^\"]*\"[^>]+href=\"(/[^\\\"]+/blob/[^\\\"#?]+(?:\\?[^\\\"#]*)?(?:#[^\\\"]*)?)\"'
+                alt2_groups = re.findall(alt2, content, flags=re.I)
+                if alt2_groups:
+                    results = list({f"https://github.com{u}" for u in alt2_groups})
+            except Exception:
+                pass
+        # Tertiary fallback: match absolute and relative href (single/double quotes)
+        if not results:
+            try:
+                alt3 = r'href=[\'\"](?:https://github\.com)?(/[^\'\"]+/blob/[^\'\"#?]+(?:\?[^\'\"#]*)?(?:#[^\'\"]*)?)[\'\"]'
+                alt3_groups = re.findall(alt3, content, flags=re.I)
+                if alt3_groups:
+                    results = list({f"https://github.com{u}" for u in alt3_groups})
+            except Exception:
+                pass
+        # Quaternary fallback: parse data-hydro-click JSON href
+        if not results:
+            try:
+                alt4 = r'data-hydro-click=\'\{[^\']*\"href\":\"(/[^\"#?]+/blob/[^\"#?]+(?:\?[^\"#]*)?(?:#[^\"]*)?)\"'
+                alt4_groups = re.findall(alt4, content, flags=re.I)
+                if alt4_groups:
+                    results = list({f"https://github.com{u}" for u in alt4_groups})
+            except Exception:
+                pass
     except Exception:
         results = []
+
+    # If still no results, dump page for inspection
+    if not results and content:
+        try:
+            os.makedirs("logs", exist_ok=True)
+            ts = int(time.time())
+            with open(os.path.join("logs", f"search_page_p{page}_{ts}.html"), "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            pass
 
     # Call extract callback if provided
     if callback and isinstance(callback, Callable) and results:
@@ -701,6 +774,24 @@ def search_code(
             links.add(f"https://github.com{uri}")
 
         results = list(links)
+        # Fallback extraction: handle links without specific line anchors
+        if not results:
+            try:
+                alt_regex = r'href="(/[^\"]+/blob/[^\"#?]+(?:\?[^\"#]*)?(?:#[^\"]*)?)"'
+                alt_groups = re.findall(alt_regex, content, flags=re.I)
+                if alt_groups:
+                    results = list({f"https://github.com{u}" for u in alt_groups})
+            except Exception:
+                pass
+        # Secondary fallback: match Link--primary anchors
+        if not results:
+            try:
+                alt2 = r'<a[^>]+class=\"[^\"]*Link--primary[^\"]*\"[^>]+href=\"(/[^\\\"]+/blob/[^\\\"#?]+(?:\\?[^\\\"#]*)?(?:#[^\\\"]*)?)\"'
+                alt2_groups = re.findall(alt2, content, flags=re.I)
+                if alt2_groups:
+                    results = list({f"https://github.com{u}" for u in alt2_groups})
+            except Exception:
+                pass
 
         # Call extract callback if provided
         if callback and isinstance(callback, Callable) and results:
@@ -708,6 +799,16 @@ def search_code(
                 callback(results, content)
             except Exception as e:
                 logger.error(f"[search] callback failed: {e}")
+
+        # Dump page if no results extracted to aid debugging
+        if not results and content:
+            try:
+                os.makedirs("logs", exist_ok=True)
+                ts = int(time.time())
+                with open(os.path.join("logs", f"search_code_p{page}_{ts}.html"), "w", encoding="utf-8") as f:
+                    f.write(content)
+            except Exception:
+                pass
 
         return results, content
     except Exception:

@@ -231,7 +231,28 @@ tasks:
       model_pattern: ""
     # 搜索条件(用于查找潜在密钥的搜索查询)
     conditions:
-      - query: '"T3BlbkFJ"'
+      - query: '/sk(?:-proj)?-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}/'
+      - query: 'content:T3BlbkFJ AND (openai OR "api.openai.com")'
+      - query: '/sk-[A-Za-z0-9]{48}/ AND (openai OR "api.openai.com")'
+      - query: '/sk(?:-proj)?-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}/ AND (filename:.env OR path:.env)'
+      - query: 'OPENAI_API_KEY AND (filename:.env OR path:.env)'
+      - query: 'OPENAI_API_KEY AND (language:Python OR language:JavaScript OR language:TypeScript)'
+      - query: '"Authorization: Bearer" AND "api.openai.com"'
+      - query: '"api.openai.com/v1" AND (openai OR "Authorization: Bearer")'
+      - query: '/sk-[A-Za-z0-9]{48}/ AND (filename:.env OR path:.env)'
+      - query: '/sk-[A-Za-z0-9]{48}/ AND (language:Python OR language:TypeScript)'
+      - query: 'content:T3BlbkFJ AND (path:config OR path:configs OR path:settings)'
+      - query: 'content:T3BlbkFJ AND (filename:config.js OR filename:settings.py)'
+      - query: 'OPENAI_API_KEY AND (path:serverless OR path:functions OR path:cloud)'
+      - query: 'OPENAI_API_KEY AND (filename:.env.local OR filename:.env.production OR filename:.env.development)'
+      - query: '"OPENAI_API_KEY=" AND (filename:.env OR path:.env)'
+      - query: '"sk-" AND (openai OR "api.openai.com") AND (filename:.env OR path:.env)'
+      - query: '"OpenAI-Organization" AND ("sk-" OR T3BlbkFJ)'
+      - query: 'content:T3BlbkFJ AND language:Go'
+      - query: 'content:T3BlbkFJ AND language:PHP'
+      - query: 'content:T3BlbkFJ AND language:Ruby'
+      - query: '"api.openai.com" AND "Bearer sk-"'
+      - query: 'openai AND "sk-" AND NOT test'
     # 速率限制配置（更稳健的自适应参数）
     rate_limit:
       base_rate: 0.5           # 稳妥起步，配合重试与自适应
@@ -242,6 +263,75 @@ tasks:
       max_rate_multiplier: 2.0
       min_rate_multiplier: 0.1
     # 结果目录(自定义输出目录)
+    extras:
+      directory: "openai"
+
+  # OpenAI API-based searches (non-regex queries via GitHub API)
+  - name: "openai_api"
+    enabled: true
+    provider_type: "openai_like"
+    use_api: true
+    stages:
+      search: true
+      gather: true
+      check: true
+      inspect: true
+    api:
+      base_url: https://api.openai.com
+      completion_path: /v1/chat/completions
+      model_path: /v1/models
+      default_model: gpt-4o-mini
+      auth_key: Authorization
+      extra_headers: {}
+      api_version: ""
+      timeout: 30
+      retries: 3
+    patterns:
+      key_pattern: "sk(?:-proj)?-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}"
+      address_pattern: ""
+      endpoint_pattern: ""
+      model_pattern: ""
+    conditions:
+      - query: 'content:T3BlbkFJ AND (openai OR "api.openai.com")'
+      - query: 'OPENAI_API_KEY AND (filename:.env OR path:.env)'
+      - query: 'OPENAI_API_KEY AND (language:Python OR language:JavaScript OR language:TypeScript)'
+      - query: '"Authorization: Bearer" AND "api.openai.com"'
+      - query: '"api.openai.com/v1" AND (openai OR "Authorization: Bearer")'
+      - query: 'content:T3BlbkFJ AND (path:config OR path:configs OR path:settings)'
+      - query: 'content:T3BlbkFJ AND (filename:config.js OR filename:settings.py)'
+      - query: 'OPENAI_API_KEY AND (path:serverless OR path:functions OR path:cloud)'
+      - query: 'OPENAI_API_KEY AND (filename:.env.local OR filename:.env.production OR filename:.env.development)'
+      - query: '"OPENAI_API_KEY" AND (filename:.env OR path:.env)'
+      - query: '"sk-" AND (openai OR "api.openai.com") AND (filename:.env OR path:.env)'
+      - query: '"OpenAI-Organization" AND ("sk-" OR T3BlbkFJ)'
+      - query: 'content:T3BlbkFJ AND language:Go'
+      - query: 'content:T3BlbkFJ AND language:PHP'
+      - query: 'content:T3BlbkFJ AND language:Ruby'
+      - query: '"api.openai.com" AND "Bearer sk-"'
+      - query: 'openai AND "sk-" AND NOT test'
+      - query: 'OPENAI_API_KEY AND (filename:settings.json OR filename:settings.py OR filename:application.yml)'
+      - query: 'OPENAI_API_KEY AND path:.github/workflows'
+      - query: '"api.openai.com" AND (filename:package.json OR filename:package-lock.json)'
+      - query: '"api.openai.com" AND language:TypeScript'
+      - query: '"api.openai.com" AND language:Python'
+      - query: 'openai AND "Bearer" AND (filename:index.js OR filename:api.ts)'
+      - query: 'OPENAI_API_KEY AND (path:src OR path:server OR path:backend)'
+      - query: 'OPENAI_API_KEY AND (path:examples OR path:samples) NOT test'
+      - query: 'OPENAI_API_KEY AND extension:env'
+      - query: 'OPENAI_API_KEY AND extension:yaml'
+      - query: '"sk-" AND (language:Go OR language:Ruby)'
+      - query: '"Authorization" AND "sk-" AND path:config'
+      - query: 'openai AND (filename:.npmrc OR filename:.yarnrc)'
+      - query: 'openai AND path:docker'
+      - query: 'openai AND path:kubernetes'
+    rate_limit:
+      base_rate: 0.5
+      burst_limit: 5
+      adaptive: true
+      backoff_factor: 0.6
+      recovery_factor: 1.2
+      max_rate_multiplier: 2.0
+      min_rate_multiplier: 0.1
     extras:
       directory: "openai"
 
@@ -264,7 +354,7 @@ tasks:
       base_url: https://generativelanguage.googleapis.com
       model_path: /v1/models
       completion_path: /v1/models
-      default_model: gemini-1.5-flash
+      default_model: gemini-2.5-pro
       auth_key: x-goog-api-key
       extra_headers:
         User-Agent: "KeyValidator/1.0 (+https://example.com)"
@@ -276,12 +366,31 @@ tasks:
     # 模式匹配配置
     patterns:
       # 更通用的 Google/Gemini API Key 形态
-      key_pattern: 'AIza[0-9A-Za-z_-]{35}'
+      key_pattern: 'AIzaSy[a-zA-Z0-9_\-]{33}'
     # 搜索条件(用于查找潜在密钥的搜索查询)
     conditions:
+      - query: '/AIza[0-9A-Za-z_\-]{35}/ AND (gemini OR generativelanguage.googleapis.com)'
+      - query: '/AIzaSy[a-zA-Z0-9_\-]{33}/ AND content:gemini'
       - query: 'GEMINI_API_KEY OR GOOGLE_API_KEY'
-      - query: 'filename:.env OR path:.env'
-      - query: 'content:AIza AND (gemini OR generativelanguage.googleapis.com)'
+      - query: 'GEMINI_API_KEY AND (filename:.env OR path:.env)'
+      - query: '"x-goog-api-key" AND (gemini OR generativelanguage.googleapis.com)'
+      - query: '"generativelanguage.googleapis.com" AND "AIza"'
+      - query: '/AIza[0-9A-Za-z_\-]{35}/ AND (filename:.env OR path:.env)'
+      - query: '/AIza[0-9A-Za-z_\-]{35}/ AND (language:JavaScript OR language:Python)'
+      - query: '"AIza" AND (filename:config.js OR filename:settings.py)'
+      - query: 'GOOGLE_API_KEY AND (filename:.env OR path:.env)'
+      - query: '"AIza" AND (path:config OR path:configs OR path:settings)'
+      - query: 'content:AIza AND language:Go'
+      - query: 'content:AIza AND language:TypeScript'
+      - query: '"AIza" AND "gemini" AND NOT sample'
+      - query: '"AIza" AND "gemini" AND NOT example'
+      - query: '"AIza" AND "gemini" AND NOT test'
+      - query: '"AIza" AND (path:serverless OR path:functions)'
+      - query: '"AIza" AND (filename:.env.local OR filename:.env.production)'
+      - query: 'content:AIza AND (filename:.env OR path:.env)'
+      - query: '"x-goog-api-key" AND language:JavaScript'
+      - query: '"AIza" AND "GOOGLE_API_KEY"'
+      - query: '"AIza" AND "GEMINI_API_KEY"'
     # 速率限制配置（与 openai 一致的自适应参数集）
     rate_limit:
       base_rate: 0.5

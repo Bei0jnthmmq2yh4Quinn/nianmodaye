@@ -447,6 +447,12 @@ Examples:
     )
 
     parser.add_argument("--timeout", type=float, help="Maximum runtime in seconds")
+    parser.add_argument(
+        "--watch",
+        type=float,
+        default=0.0,
+        help="Watch mode: if > 0, reruns the pipeline every N seconds after completion",
+    )
 
     parser.add_argument(
         "--stats-interval",
@@ -476,81 +482,92 @@ Examples:
         print("Use --create-config to create a sample configuration")
         sys.exit(1)
 
-    # Initialize logging with specified level
-    init_logging(args.log_level)
+    def run_cycle() -> None:
+        # Initialize logging with specified level
+        init_logging(args.log_level)
 
-    # Create and configure application
-    app = HarvesterApp(args.config)
+        # Create and configure application
+        app = HarvesterApp(args.config)
+        # Set stats interval from command line
+        app.stats_interval = args.stats_interval
 
-    # Set stats interval from command line
-    app.stats_interval = args.stats_interval
+        try:
+            logger.info("Starting Async Pipeline Application")
+            logger.info("=" * 60)
 
-    try:
-        logger.info("Starting Async Pipeline Application")
-        logger.info("=" * 60)
+            # Run application with timeout handling
+            if args.timeout:
+                def timeout_handler():
+                    time.sleep(args.timeout)
+                    logger.warning(f"Processing timed out after {args.timeout} seconds")
+                    app.shutdown_event.set()
 
-        # Run application with timeout handling
-        if args.timeout:
-            # Start timeout thread
-            def timeout_handler():
-                time.sleep(args.timeout)
-                logger.warning(f"Processing timed out after {args.timeout} seconds")
-                app.shutdown_event.set()
+                timeout_thread = threading.Thread(target=timeout_handler, daemon=True)
+                timeout_thread.start()
 
-            timeout_thread = threading.Thread(target=timeout_handler, daemon=True)
-            timeout_thread.start()
+            # Run the application
+            success = app.run()
 
-        # Run the application
-        success = app.run()
-
-        if success:
-            if app.task_manager and app.task_manager.pipeline and app.task_manager.pipeline.is_finished():
-                logger.info("Processing completed successfully!")
-            elif args.timeout and app.shutdown_event.is_set():
-                logger.info(f"Processing timed out after {args.timeout} seconds")
+            if success:
+                if app.task_manager and app.task_manager.pipeline and app.task_manager.pipeline.is_finished():
+                    logger.info("Processing completed successfully!")
+                elif args.timeout and app.shutdown_event.is_set():
+                    logger.info(f"Processing timed out after {args.timeout} seconds")
+                else:
+                    logger.info("🛑 Processing stopped by user")
             else:
-                logger.info("🛑 Processing stopped by user")
-        else:
-            logger.error("Application failed to run")
+                logger.error("Application failed to run")
 
-        # Print final status
-        logger.info("Final Status:")
-        try:
-            if app.status_manager:
-                app.status_manager.show_status(StatusContext.APPLICATION, DisplayMode.DETAILED)
+            # Print final status
+            logger.info("Final Status:")
+            try:
+                if app.status_manager:
+                    app.status_manager.show_status(StatusContext.APPLICATION, DisplayMode.DETAILED)
+            except Exception as e:
+                logger.debug(f"Error showing final status: {e}")
+
+        except KeyboardInterrupt:
+            logger.info("🛑 Shutdown requested by user")
+
         except Exception as e:
-            logger.debug(f"Error showing final status: {e}")
+            logger.error(f"Application error: {e}")
+            traceback.print_exc()
 
-    except KeyboardInterrupt:
-        logger.info("🛑 Shutdown requested by user")
+        finally:
+            logger.info("Shutting down...")
+            try:
+                # Get final status
+                status = app.get_status()
+                logger.info(f"Summary: Runtime {status.runtime:.1f}s")
 
-    except Exception as e:
-        logger.error(f"Application error: {e}")
-        traceback.print_exc()
+                if status.monitoring_status:
+                    monitoring_stats = status.monitoring_status
+                    if isinstance(monitoring_stats, dict):
+                        logger.info(
+                            f"Results: {monitoring_stats.get('total_valid_keys', 0)} valid keys, "
+                            f"{monitoring_stats.get('total_links', 0)} links processed"
+                        )
+            except Exception as e:
+                logger.error(f"Could not retrieve final status: {e}")
 
-    finally:
-        logger.info("Shutting down...")
+            # Flush logs before exit
+            try:
+                flush_logs()
+                logger.info("Logs flushed to disk")
+            except Exception as e:
+                logger.error(f"Error flushing logs: {e}")
+
+    # Run once or in watch mode
+    if args.watch and args.watch > 0:
+        logger.info(f"Watch mode enabled: rerun every {args.watch} seconds")
         try:
-            # Get final status
-            status = app.get_status()
-            logger.info(f"Summary: Runtime {status.runtime:.1f}s")
-
-            if status.monitoring_status:
-                monitoring_stats = status.monitoring_status
-                if isinstance(monitoring_stats, dict):
-                    logger.info(
-                        f"Results: {monitoring_stats.get('total_valid_keys', 0)} valid keys, "
-                        f"{monitoring_stats.get('total_links', 0)} links processed"
-                    )
-        except Exception as e:
-            logger.error(f"Could not retrieve final status: {e}")
-
-        # Flush logs before exit
-        try:
-            flush_logs()
-            logger.info("Logs flushed to disk")
-        except Exception as e:
-            logger.error(f"Error flushing logs: {e}")
-
-        # Clean exit
+            while True:
+                run_cycle()
+                logger.info(f"Sleeping {args.watch} seconds before next cycle...")
+                time.sleep(args.watch)
+        except KeyboardInterrupt:
+            logger.info("🛑 Watch mode stopped by user")
+            sys.exit(0)
+    else:
+        run_cycle()
         sys.exit(0)
