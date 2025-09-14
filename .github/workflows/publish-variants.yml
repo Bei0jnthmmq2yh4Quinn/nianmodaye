@@ -42,7 +42,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ env.OWNER_LC }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push ${{ matrix.name }}
@@ -51,6 +51,7 @@ jobs:
           context: .
           push: true
           provenance: false
+          platforms: linux/amd64
           build-args: |
             APP_CONFIG=${{ matrix.app_config }}
           tags: |
