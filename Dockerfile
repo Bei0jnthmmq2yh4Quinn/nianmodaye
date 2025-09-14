@@ -13,7 +13,8 @@ ENV GITHUB_SESSIONS=""
 ENV GITHUB_TOKENS=""
 
 # Application configuration
-ENV CONFIG_FILE="config.yaml" \
+ARG APP_CONFIG="config.yaml"
+ENV CONFIG_FILE="$APP_CONFIG" \
     LOG_LEVEL="INFO" \
     STATS_INTERVAL="15"
 

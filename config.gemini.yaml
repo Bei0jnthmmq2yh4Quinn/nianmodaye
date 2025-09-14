@@ -1,4 +1,4 @@
-﻿global:
+global:
   workspace: "./data"
   max_retries_requeued: 3
   github_credentials:
@@ -59,71 +59,6 @@ ratelimits:
     adaptive: true
 
 tasks:
-  - name: "openai"
-    enabled: false
-    provider_type: "openai_like"
-    use_api: false
-    stages:
-      search: true
-      gather: true
-      check: true
-      inspect: true
-    api:
-      base_url: https://api.openai.com
-      completion_path: /v1/chat/completions
-      model_path: /v1/models
-      default_model: gpt-4o-mini
-      auth_key: Authorization
-      extra_headers: {}
-      api_version: ""
-      timeout: 30
-      retries: 3
-    patterns:
-      key_pattern: "sk(?:-proj)?-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}"
-    conditions:
-      - query: '/sk(?:-proj)?-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}/'
-    rate_limit:
-      base_rate: 1.0
-      burst_limit: 10
-      adaptive: true
-      backoff_factor: 0.6
-      recovery_factor: 1.2
-      max_rate_multiplier: 2.0
-      min_rate_multiplier: 0.1
-    extras:
-      directory: "openai"
-
-  - name: "openai_api"
-    enabled: false
-    provider_type: "openai_like"
-    use_api: true
-    stages:
-      search: true
-      gather: true
-      check: true
-      inspect: true
-    api:
-      base_url: https://api.openai.com
-      completion_path: /v1/chat/completions
-      model_path: /v1/models
-      default_model: gpt-4o-mini
-      auth_key: Authorization
-      extra_headers: {}
-      api_version: ""
-      timeout: 30
-      retries: 3
-    patterns:
-      key_pattern: "sk(?:-proj)?-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}"
-    conditions:
-      - query: 'content:T3BlbkFJ AND (openai OR "api.openai.com")'
-      - query: 'OPENAI_API_KEY AND (filename:.env OR path:.env)'
-      - query: '"Authorization: Bearer" AND "api.openai.com"'
-    rate_limit:
-      base_rate: 0.5
-      burst_limit: 5
-      adaptive: true
-    extras:
-      directory: "openai"
   - name: "gemini"
     enabled: true
     provider_type: "gemini"
@@ -158,3 +93,4 @@ tasks:
       adaptive: true
     extras:
       directory: "gemini"
+

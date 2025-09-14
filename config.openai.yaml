@@ -1,4 +1,4 @@
-﻿global:
+global:
   workspace: "./data"
   max_retries_requeued: 3
   github_credentials:
@@ -60,7 +60,7 @@ ratelimits:
 
 tasks:
   - name: "openai"
-    enabled: false
+    enabled: true
     provider_type: "openai_like"
     use_api: false
     stages:
@@ -94,7 +94,7 @@ tasks:
       directory: "openai"
 
   - name: "openai_api"
-    enabled: false
+    enabled: true
     provider_type: "openai_like"
     use_api: true
     stages:
@@ -124,8 +124,9 @@ tasks:
       adaptive: true
     extras:
       directory: "openai"
+
   - name: "gemini"
-    enabled: true
+    enabled: false
     provider_type: "gemini"
     use_api: false
     stages:
@@ -148,13 +149,10 @@ tasks:
       key_pattern: 'AIza[0-9A-Za-z_-]{35}'
     conditions:
       - query: '/AIza[0-9A-Za-z_-]{35}/ AND (gemini OR generativelanguage.googleapis.com)'
-      - query: 'GEMINI_API_KEY OR GOOGLE_API_KEY'
-      - query: 'GEMINI_API_KEY AND (filename:.env OR path:.env)'
-      - query: '"x-goog-api-key" AND (gemini OR generativelanguage.googleapis.com)'
-      - query: '"generativelanguage.googleapis.com" AND "AIza"'
     rate_limit:
       base_rate: 1.0
       burst_limit: 10
       adaptive: true
     extras:
       directory: "gemini"
+
