@@ -12,10 +12,10 @@ global:
 
 pipeline:
   threads:
-    search: 2
-    gather: 12
-    check: 8
-    inspect: 2
+    search: 1
+    gather: 8
+    check: 12
+    inspect: 3
   queue_sizes:
     search: 100000
     gather: 200000
@@ -83,8 +83,8 @@ tasks:
     conditions:
       - query: '/sk(?:-proj)?-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}/'
     rate_limit:
-      base_rate: 1.0
-      burst_limit: 10
+      base_rate: 1.2
+      burst_limit: 12
       adaptive: true
       backoff_factor: 0.6
       recovery_factor: 1.2
@@ -119,8 +119,8 @@ tasks:
       - query: 'OPENAI_API_KEY AND (filename:.env OR path:.env)'
       - query: '"Authorization: Bearer" AND "api.openai.com"'
     rate_limit:
-      base_rate: 0.5
-      burst_limit: 5
+      base_rate: 0.8
+      burst_limit: 8
       adaptive: true
     extras:
       directory: "openai"
@@ -155,4 +155,3 @@ tasks:
       adaptive: true
     extras:
       directory: "gemini"
-
